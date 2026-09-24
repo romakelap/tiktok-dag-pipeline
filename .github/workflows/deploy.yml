@@ -1,0 +1,34 @@
+name: Auto Deploy Airflow DAGs to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Sync Code to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Sync Files to AWS EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 52.77.214.191
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🔄 Updating code on EC2..."
+            cd /home/ubuntu/dag-collection-tt
+            git fetch --all
+            git reset --hard origin/main || true
+            git pull origin main || true
+
+            # Sync updated DAGs and configs to Airflow home
+            mkdir -p /home/ubuntu/airflow/dags
+            cp -r /home/ubuntu/dag-collection-tt/dags/* /home/ubuntu/airflow/dags/ 2>/dev/null || true
+
+            echo "✅ Deployment successful! Airflow will auto-reload updated DAGs."

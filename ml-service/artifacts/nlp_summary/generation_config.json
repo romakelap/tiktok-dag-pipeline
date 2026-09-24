@@ -1,0 +1,13 @@
+{
+  "_from_model_config": true,
+  "decoder_start_token_id": 3,
+  "early_stopping": true,
+  "eos_token_id": 1,
+  "length_penalty": 2.0,
+  "max_length": 40,
+  "min_length": 20,
+  "no_repeat_ngram_size": 3,
+  "num_beams": 10,
+  "pad_token_id": 2,
+  "transformers_version": "4.48.0"
+}

@@ -1,0 +1,43 @@
+name: Echotik Serverless Data Pipeline
+
+on:
+  schedule:
+    # Berjalan setiap 12 jam (pukul 00:00 dan 12:00 UTC)
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+    # Memungkinkan memicu pipeline secara manual dari tab Actions di GitHub
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas openpyxl requests xlsxwriter pymysql sqlalchemy cryptography
+
+    - name: Run Pipeline Script
+      env:
+        ECHOTIK_BEARER_TOKEN: ${{ secrets.ECHOTIK_BEARER_TOKEN }}
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        python run_pipeline_serverless.py
+
+    - name: Upload Excel Output as Artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: echotik-excel-reports
+        path: raw-data/Excel/
+        retention-days: 14

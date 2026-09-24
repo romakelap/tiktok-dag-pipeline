@@ -1,0 +1,159 @@
+[
+  {
+    "model_name": "rf_viral_prediction",
+    "model_type": "random_forest",
+    "version": "v1.0",
+    "artifact_path": "artifacts/rf_viral.pkl",
+    "artifact_size_bytes": 2667074,
+    "metrics": {
+      "accuracy_score": 0.9641,
+      "precision_score": 0.9977,
+      "recall_score": 0.9618,
+      "f1_score": 0.9794
+    },
+    "training_data_size": 5012,
+    "feature_columns": [
+      "follower_count_num",
+      "duration_seconds",
+      "title_length",
+      "hashtag_count",
+      "mention_count",
+      "emoji_count",
+      "has_question",
+      "published_day_of_week",
+      "published_hour",
+      "linked_hashtag_count",
+      "avg_hashtag_views",
+      "avg_hashtag_video_count",
+      "avg_hashtag_engagement_rate",
+      "avg_hashtag_competition_score",
+      "duration_bucket_encoded",
+      "follower_tier_encoded",
+      "is_ai_video",
+      "is_promote",
+      "is_latest",
+      "total_products_linked",
+      "monetization_score",
+      "revenue_tier_encoded"
+    ],
+    "hyperparameters": {
+      "n_estimators": 200,
+      "max_depth": 12,
+      "min_samples_leaf": 2,
+      "class_weight": "balanced"
+    },
+    "notes": "Trained in Google Colab from vw_ml_feature_store export."
+  },
+  {
+    "model_name": "svm_engagement_tier",
+    "model_type": "svm",
+    "version": "v1.0",
+    "artifact_path": "artifacts/svm_engagement.pkl",
+    "artifact_size_bytes": 82597,
+    "metrics": {
+      "accuracy_score": 0.9581,
+      "precision_score": 0.9685,
+      "recall_score": 0.9581,
+      "f1_score": 0.9606
+    },
+    "training_data_size": 5012,
+    "feature_columns": [
+      "follower_count_num",
+      "duration_seconds",
+      "title_length",
+      "hashtag_count",
+      "mention_count",
+      "emoji_count",
+      "has_question",
+      "published_day_of_week",
+      "published_hour",
+      "linked_hashtag_count",
+      "avg_hashtag_views",
+      "avg_hashtag_video_count",
+      "avg_hashtag_engagement_rate",
+      "avg_hashtag_competition_score",
+      "duration_bucket_encoded",
+      "follower_tier_encoded",
+      "is_ai_video",
+      "is_promote",
+      "is_latest",
+      "total_products_linked",
+      "monetization_score",
+      "revenue_tier_encoded"
+    ],
+    "hyperparameters": {
+      "kernel": "rbf",
+      "C": 2.0,
+      "gamma": "scale",
+      "probability": true,
+      "class_weight": "balanced"
+    },
+    "notes": "Trained in Google Colab from vw_ml_feature_store export."
+  },
+  {
+    "model_name": "kmeans_content_cluster",
+    "model_type": "kmeans",
+    "version": "v1.0",
+    "artifact_path": "artifacts/kmeans_content.pkl",
+    "artifact_size_bytes": 63961,
+    "metrics": {
+      "silhouette_score": 0.1899
+    },
+    "training_data_size": 5012,
+    "feature_columns": [
+      "follower_count_num",
+      "duration_seconds",
+      "title_length",
+      "hashtag_count",
+      "mention_count",
+      "emoji_count",
+      "has_question",
+      "published_day_of_week",
+      "published_hour",
+      "linked_hashtag_count",
+      "avg_hashtag_views",
+      "avg_hashtag_video_count",
+      "avg_hashtag_engagement_rate",
+      "avg_hashtag_competition_score",
+      "duration_bucket_encoded",
+      "follower_tier_encoded",
+      "is_ai_video",
+      "is_promote",
+      "is_latest",
+      "total_products_linked",
+      "monetization_score",
+      "revenue_tier_encoded",
+      "nlp_text"
+    ],
+    "hyperparameters": {
+      "n_clusters": 5,
+      "tfidf_max_features": 500,
+      "ngram_range": [
+        1,
+        2
+      ]
+    },
+    "notes": "Trained in Google Colab from vw_ml_feature_store export."
+  },
+  {
+    "model_name": "hf_indonesian_summarizer",
+    "model_type": "nlp_summarizer",
+    "version": "v1.0",
+    "artifact_path": "artifacts/nlp_summary",
+    "artifact_size_bytes": 999574845,
+    "metrics": {},
+    "training_data_size": 0,
+    "feature_columns": [
+      "nlp_text",
+      "title_full",
+      "title_brief",
+      "hashtag_text"
+    ],
+    "hyperparameters": {
+      "pretrained_model": "cahya/bert2bert-indonesian-summarization",
+      "fine_tuned_locally": false,
+      "mode": "pretrained_inference_only"
+    },
+    "notes": "Pretrained Hugging Face summarizer saved from Colab without local fine-tuning."
+  }
+]

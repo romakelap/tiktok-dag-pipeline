@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ===== TITLE ===== -->
+    <mxCell id="title" value="ECHOTIK DATA COLLECTION PIPELINE — Technical Flowchart (v3)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="200" y="20" width="1200" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="subtitle" value="DAG ID: echotik_data_collection | Schedule: Setiap 12 jam | Airflow + Python | Output: JSON + Excel" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="200" y="55" width="1200" height="25" as="geometry" />
+    </mxCell>
+
+    <!-- ===== LEGEND ===== -->
+    <mxCell id="legend_title" value="LEGENDA" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="30" y="100" width="100" height="20" as="geometry" />
+    </mxCell>
+    <mxCell id="leg1" value="Airflow Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="125" width="120" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="leg2" value="Config / Variable" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="165" width="120" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="leg3" value="Storage / File" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="205" width="120" height="35" as="geometry" />
+    </mxCell>
+    <mxCell id="leg4" value="External API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="250" width="120" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="leg5" value="Monitoring / Alert" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="290" width="120" height="30" as="geometry" />
+    </mxCell>
+    <mxCell id="leg6" value="Decision / Branch" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="30" y="330" width="120" height="40" as="geometry" />
+    </mxCell>
+
+    <!-- ===== AIRFLOW VARIABLES (INPUT CONFIG) ===== -->
+    <mxCell id="var_box" value="AIRFLOW VARIABLES&#xa;(Admin → Variables)&#xa;&#xa;• ECHOTIK_BEARER_TOKEN&#xa;• ECHOTIK_COOKIES (optional)&#xa;• DISCORD_WEBHOOK_URL" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="200" y="100" width="220" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- ===== CATEGORIES CONFIG ===== -->
+    <mxCell id="config_box" value="categories_config.py&#xa;&#xa;• PAGINATION_CONFIG&#xa;  per_page=30, page 1–14&#xa;  delay 3–10s / page&#xa;  delay 30–60s / API&#xa;• REGIONAL_HEADERS&#xa;  x-region=ID, x-currency=IDR&#xa;• RAW_JSON_PATH&#xa;• EXCEL_OUTPUT_PATH" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="460" y="100" width="230" height="140" as="geometry" />
+    </mxCell>
+
+    <!-- ===== ORCHESTRATE SCRIPT ===== -->
+    <mxCell id="orch_box" value="orchestrate_collection.py&#xa;(Backfill Orchestrator)&#xa;&#xa;• Generates batched date ranges&#xa;• Triggers DAG runs via CLI&#xa;• Polls run state (15s interval)&#xa;• Stops on failure (exit 1)&#xa;• DRY_RUN mode support" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#999999;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="730" y="100" width="230" height="140" as="geometry" />
+    </mxCell>
+
+    <!-- ===== TRIGGER ===== -->
+    <mxCell id="trigger" value="⏰ DAG TRIGGER&#xa;Scheduled: setiap 12 jam&#xa;OR Manual Trigger (with params)&#xa;OR orchestrate_collection.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="560" y="280" width="280" height="60" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow from var_box to trigger -->
+    <mxCell id="e_var_trigger" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="var_box" target="trigger" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- Arrow from config_box to trigger -->
+    <mxCell id="e_cfg_trigger" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="config_box" target="trigger" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <!-- Arrow from orch_box to trigger -->
+    <mxCell id="e_orch_trigger" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="orch_box" target="trigger" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 1: setup_dates -->
+    <!-- ============================================================ -->
+    <mxCell id="t1" value="[TASK 1] setup_dates&#xa;───────────────────────&#xa;INPUT: DAG params (optional manual override)&#xa;  • library_start_date / library_end_date&#xa;  • hashtag_week_range&#xa;  • selling_month_range&#xa;&#xa;PROSES:&#xa;  • Video Library → daily (epoch ts)&#xa;    Auto: kemarin 00:00 – 23:59&#xa;  • Hashtag → weekly (YYYYMMDD–YYYYMMDD)&#xa;    Auto: Senin–Minggu minggu lalu&#xa;  • Video Selling → monthly (YYYYMMDD–YYYYMMDD)&#xa;    Auto: bulan lalu&#xa;  • Generate run_id &amp; file_suffix&#xa;&#xa;OUTPUT (XCom): dates dict&#xa;  library_start/end_epoch, hashtag_time_range,&#xa;  selling_time_range, run_id, file_suffix&#xa;&#xa;MONITORING: Discord → Pipeline Started" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="390" width="420" height="220" as="geometry" />
+    </mxCell>
+    <mxCell id="e_trigger_t1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="trigger" target="t1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif from t1 -->
+    <mxCell id="d1" value="Discord&#xa;Pipeline Started" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="450" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t1_d1" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t1" target="d1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 2: validate_credentials -->
+    <!-- ============================================================ -->
+    <mxCell id="t2" value="[TASK 2] validate_credentials&#xa;───────────────────────&#xa;INPUT: Airflow Variables&#xa;  • ECHOTIK_BEARER_TOKEN&#xa;  • ECHOTIK_COOKIES (optional)&#xa;&#xa;PROSES:&#xa;  • Cek token tidak kosong / bukan placeholder&#xa;  • Log panjang token &amp; cookies&#xa;&#xa;OUTPUT (XCom): {status: valid, has_bearer: true, has_cookies: bool}&#xa;&#xa;ERROR: AirflowException jika token tidak di-set" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="660" width="420" height="160" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t1_t2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t1" target="t2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t2_label" value="trigger_rule: all_success" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t1_t2">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif on cred fail -->
+    <mxCell id="d2" value="Discord&#xa;Task Failed&#xa;(jika error)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="680" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t2_d2" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t2" target="d2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 3: fetch_video_library -->
+    <!-- ============================================================ -->
+    <mxCell id="t3" value="[TASK 3] fetch_video_library&#xa;───────────────────────&#xa;INPUT (XCom): library_start_epoch, library_end_epoch&#xa;CONFIG: PAGINATION_CONFIG, REGIONAL_HEADERS&#xa;&#xa;PROSES (EchotikAPIClient):&#xa;  1. Build headers (Bearer token + regional + UA rotation)&#xa;  2. Loop page 1–14 (per_page=30) via _paginate_fetch()&#xa;     GET /api/v1/data/videos&#xa;       ?page={n}&amp;per_page=30&amp;start_time={epoch}&amp;end_time={epoch}&#xa;       &amp;sort=desc&amp;order=views_count&#xa;  3. Throttle 3–10s antar page, stop jika response &lt; per_page&#xa;  4. Retry logic: max 3x, backoff 10s×attempt&#xa;  5. Handle 429 → wait Retry-After, 401/403 → raise&#xa;  6. Inter-API delay: 30–60s setelah selesai&#xa;&#xa;JIKA skip: return {status: skipped}&#xa;&#xa;OUTPUT:&#xa;  • raw-data/json/video_library_{date}_to_{date}.json&#xa;  • XCom: {records_count, filepath, status}&#xa;&#xa;MONITORING: Discord → Category Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="880" width="420" height="300" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t2_t3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t2" target="t3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t3_label" value="trigger_rule: all_done" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t2_t3">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Echotik API 1 -->
+    <mxCell id="api1" value="Echotik API&#xa;GET /api/v1/data/videos&#xa;(Video Library)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="890" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t3_api1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t3" target="api1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Raw JSON storage 1 -->
+    <mxCell id="json1" value="raw-data/json/&#xa;video_library_{date}_to_{date}.json" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="980" width="200" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_api1_json1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api1" target="json1" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif from t3 -->
+    <mxCell id="d3" value="Discord&#xa;Category Summary&#xa;Video Library" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1060" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t3_d3" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t3" target="d3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 4: fetch_hashtags -->
+    <!-- ============================================================ -->
+    <mxCell id="t4" value="[TASK 4] fetch_hashtags&#xa;───────────────────────&#xa;INPUT (XCom): hashtag_time_range&#xa;CONFIG: HASHTAG_CONFIG (time_type=weekly), PAGINATION_CONFIG&#xa;&#xa;PROSES (EchotikAPIClient):&#xa;  1. Build headers (Bearer token + regional + UA rotation)&#xa;  2. Loop page 1–14 (per_page=30) via _paginate_fetch()&#xa;     GET /api/v1/data/tags/leaderboard/top-hashtag&#xa;       ?time_type=weekly&amp;time_range={YYYYMMDD-YYYYMMDD}&#xa;       &amp;page={n}&amp;per_page=30&#xa;  3. Throttle 3–10s antar page&#xa;  4. Retry logic: max 3x, backoff 10s×attempt&#xa;&#xa;JIKA skip: return {status: skipped}&#xa;&#xa;OUTPUT:&#xa;  • raw-data/json/hashtags_{time_range}.json&#xa;  • XCom: {records_count, filepath, status}&#xa;&#xa;MONITORING: Discord → Category Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="1230" width="420" height="280" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t3_t4" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t3" target="t4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t4_label" value="trigger_rule: all_done" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t3_t4">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Echotik API 2 -->
+    <mxCell id="api2" value="Echotik API&#xa;GET /api/v1/data/tags/&#xa;leaderboard/top-hashtag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1240" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t4_api2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t4" target="api2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Raw JSON storage 2 -->
+    <mxCell id="json2" value="raw-data/json/&#xa;hashtags_{time_range}.json" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1330" width="200" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_api2_json2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api2" target="json2" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif from t4 -->
+    <mxCell id="d4" value="Discord&#xa;Category Summary&#xa;Hashtag" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1410" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t4_d4" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t4" target="d4" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 5: fetch_video_selling -->
+    <!-- ============================================================ -->
+    <mxCell id="t5" value="[TASK 5] fetch_video_selling&#xa;───────────────────────&#xa;INPUT (XCom): selling_time_range&#xa;CONFIG: VIDEO_SELLING_CONFIG (time_type=monthly), PAGINATION_CONFIG&#xa;&#xa;PROSES (EchotikAPIClient):&#xa;  1. Build headers (Bearer token + regional + UA rotation)&#xa;  2. Loop page 1–14 (per_page=30) via _paginate_fetch()&#xa;     GET /api/v1/data/videos/leaderboard/sell-videos&#xa;       ?time_type=monthly&amp;time_range={YYYYMMDD-YYYYMMDD}&#xa;       &amp;page={n}&amp;per_page=30&#xa;  3. Throttle 3–10s antar page&#xa;  4. Retry logic: max 3x, backoff 10s×attempt&#xa;&#xa;JIKA skip: return {status: skipped}&#xa;&#xa;OUTPUT:&#xa;  • raw-data/json/video_selling_{time_range}.json&#xa;  • XCom: {records_count, filepath, status}&#xa;&#xa;MONITORING: Discord → Category Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="1560" width="420" height="280" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t4_t5" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t4" target="t5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t5_label" value="trigger_rule: all_done" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t4_t5">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Echotik API 3 -->
+    <mxCell id="api3" value="Echotik API&#xa;GET /api/v1/data/videos/&#xa;leaderboard/sell-videos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1570" width="160" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t5_api3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t5" target="api3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Raw JSON storage 3 -->
+    <mxCell id="json3" value="raw-data/json/&#xa;video_selling_{time_range}.json" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1660" width="200" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_api3_json3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api3" target="json3" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif from t5 -->
+    <mxCell id="d5" value="Discord&#xa;Category Summary&#xa;Video Selling" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1740" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t5_d5" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t5" target="d5" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 6: parser_and_validate -->
+    <!-- ============================================================ -->
+    <mxCell id="t6" value="[TASK 6] parser_and_validate&#xa;───────────────────────&#xa;INPUT (XCom): filepath dari task 3, 4, 5&#xa;&#xa;PROSES:&#xa;  1. Baca masing-masing raw JSON dari storage&#xa;  2. Video Library → parse_video_library_record()&#xa;     • parse_count(), parse_percentage(), parse_duration()&#xa;     • parse_datetime(), extract_hashtags/mentions/emoji&#xa;     • Hitung duration_bucket, viral_score, engagement_tier&#xa;  3. Hashtag → parse_hashtag_record()&#xa;     • Hitung avg_views_per_video, competition_level&#xa;  4. Video Selling → parse_video_selling_record()&#xa;     • parse_money_usd(), parse_money_local()&#xa;     • Hitung revenue_tier, products JSON&#xa;  5. validate_video_record() / validate_hashtag_record()&#xa;     • Cek required fields, nilai non-negatif&#xa;     • Set is_valid flag &amp; validation_errors list&#xa;  6. deduplicate_records() → tandai duplikat, set is_valid=False&#xa;  7. get_validation_summary() → total/valid/invalid/error_breakdown&#xa;  8. export_to_excel() → multi-sheet XLSX&#xa;     Sheet: video_library, hashtags, video_selling, validation_report&#xa;&#xa;OUTPUT:&#xa;  • raw-data/Excel/echotik_data_{run_date}.xlsx&#xa;  • XCom: {excel_path, total_records, valid_records, invalid_records}&#xa;&#xa;MONITORING: Discord → Parser &amp; Validation Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="1900" width="420" height="380" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t5_t6" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t5" target="t6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t6_label" value="trigger_rule: all_done" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t5_t6">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Reads JSON files -->
+    <mxCell id="e_json1_t6" style="edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" source="json1" target="t6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_json2_t6" style="edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" source="json2" target="t6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_json3_t6" style="edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" source="json3" target="t6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Excel output -->
+    <mxCell id="excel_out" value="raw-data/Excel/&#xa;echotik_data_{run_date}.xlsx&#xa;&#xa;Sheet 1: video_library&#xa;Sheet 2: hashtags&#xa;Sheet 3: video_selling&#xa;Sheet 4: validation_report" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="1970" width="200" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t6_excel" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t6" target="excel_out" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord notif from t6 -->
+    <mxCell id="d6" value="Discord&#xa;Parser &amp; Validation&#xa;Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="2100" width="130" height="50" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t6_d6" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t6" target="d6" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- TASK 7: dag_complete_summary -->
+    <!-- ============================================================ -->
+    <mxCell id="t7" value="[TASK 7] dag_complete_summary&#xa;───────────────────────&#xa;INPUT (XCom): parser_result, dates&#xa;&#xa;PROSES:&#xa;  • Hitung durasi total DAG run&#xa;  • Tentukan status: success / partial&#xa;    (partial jika total_records == 0)&#xa;  • Hitung next_run (now + 12 jam)&#xa;&#xa;OUTPUT (XCom): {status, total_records}&#xa;&#xa;MONITORING: Discord → DAG Complete Summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;" vertex="1" parent="1">
+      <mxGeometry x="490" y="2340" width="420" height="180" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t6_t7" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t6" target="t7" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t7_label" value="trigger_rule: all_done" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;fontSize=8;" vertex="1" connectable="0" parent="e_t6_t7">
+      <mxGeometry x="-0.2" relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Discord final summary -->
+    <mxCell id="d7" value="Discord&#xa;DAG Complete Summary&#xa;(status, duration,&#xa;total_records, next_run)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=9;" vertex="1" parent="1">
+      <mxGeometry x="960" y="2370" width="150" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t7_d7" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="t7" target="d7" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- END -->
+    <!-- ============================================================ -->
+    <mxCell id="end" value="⏹ PIPELINE SELESAI&#xa;→ Data siap untuk ingestion pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+      <mxGeometry x="560" y="2580" width="280" height="60" as="geometry" />
+    </mxCell>
+    <mxCell id="e_t7_end" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t7" target="end" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- RETRY / ERROR PATH ANNOTATION -->
+    <!-- ============================================================ -->
+    <mxCell id="retry_note" value="⚠️ ERROR HANDLING (berlaku untuk task 3, 4, 5):&#xa;• Timeout → retry max 3x, backoff 10s × attempt&#xa;• HTTP 429 → baca Retry-After header, tunggu, lanjutkan&#xa;• HTTP 401/403 → raise Exception (token expired)&#xa;• Airflow retries: 1x dengan delay 5 menit&#xa;• Setiap gagal → Discord: Task Failed notification" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#cc0000;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="200" y="1100" width="260" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- ============================================================ -->
+    <!-- XCOM FLOW ANNOTATION -->
+    <!-- ============================================================ -->
+    <mxCell id="xcom_note" value="📦 XCOM DATA FLOW:&#xa;setup_dates → fetch_* (date ranges)&#xa;fetch_video_library → parser (filepath)&#xa;fetch_hashtags → parser (filepath)&#xa;fetch_video_selling → parser (filepath)&#xa;parser_and_validate → summary (metrics)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fffde7;strokeColor=#f9a825;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="200" y="1700" width="260" height="110" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>

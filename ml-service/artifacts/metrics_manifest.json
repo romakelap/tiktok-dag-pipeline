@@ -1,0 +1,18 @@
+{
+  "rf_viral_prediction": {
+    "accuracy_score": 0.9641,
+    "precision_score": 0.9977,
+    "recall_score": 0.9618,
+    "f1_score": 0.9794
+  },
+  "svm_engagement_tier": {
+    "accuracy_score": 0.9581,
+    "precision_score": 0.9685,
+    "recall_score": 0.9581,
+    "f1_score": 0.9606
+  },
+  "kmeans_content_cluster": {
+    "silhouette_score": 0.1899,
+    "n_clusters": 5
+  }
+}

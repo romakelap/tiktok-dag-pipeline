@@ -1,0 +1,29 @@
+# Python & Virtualenv
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# OS Files
+.DS_Store
+._*
+Thumbs.db
+
+# Logs & Temp Data
+logs/
+raw-data/
+*.log
+*.tmp
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+simple_auth_manager_passwords.json*
+
+# Airflow local runtime
+airflow.db*
+standalone.log
