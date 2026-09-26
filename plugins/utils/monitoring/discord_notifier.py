@@ -321,6 +321,71 @@ class AlertNotifier:
             }
             self._send_embed(embed)
     
+    def send_login_started(self, email: str):
+        """Notifikasi saat proses auto-login ke Echotik dimulai"""
+        masked_email = email[:3] + "***@" + email.split("@")[-1] if "@" in email else email
+        if self.is_gchat:
+            text = (
+                f"🔑 *Echotik Auto-Login Started*\n"
+                f"• *Account:* `{masked_email}`\n"
+                f"• *Status:* Requesting fresh Bearer access token...\n"
+                f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            self.send_message(text)
+        else:
+            embed = {
+                "title": "🔑 Echotik Auto-Login Started",
+                "description": f"Requesting fresh Bearer access token for `{masked_email}`",
+                "color": self.COLOR_BLUE,
+            }
+            self._send_embed(embed)
+    
+    def send_login_success(self, email: str, token: str, user_name: str = ""):
+        """Notifikasi saat login dan update Bearer token berhasil"""
+        masked_token = token[:10] + "..." + token[-6:] if len(token) > 16 else token[:6] + "..."
+        if self.is_gchat:
+            text = (
+                f"🎉 *Echotik Bearer Token Updated Successfully!*\n"
+                f"• *User:* {user_name or email}\n"
+                f"• *Token:* `{masked_token}`\n"
+                f"• *Airflow Variable:* `ECHOTIK_BEARER_TOKEN` updated ✅\n"
+                f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            self.send_message(text)
+        else:
+            embed = {
+                "title": "🎉 Echotik Token Refresh Success",
+                "fields": [
+                    {"name": "User", "value": user_name or email, "inline": True},
+                    {"name": "Token", "value": f"`{masked_token}`", "inline": True},
+                    {"name": "Status", "value": "✅ Airflow Variable Updated", "inline": False},
+                ],
+                "color": self.COLOR_GREEN,
+            }
+            self._send_embed(embed)
+    
+    def send_login_failed(self, email: str, error_msg: str):
+        """Notifikasi saat login gagal"""
+        masked_email = email[:3] + "***@" + email.split("@")[-1] if "@" in email else email
+        if self.is_gchat:
+            text = (
+                f"🚨 *Echotik Auto-Login Failed!*\n"
+                f"• *User:* `{masked_email}`\n"
+                f"• *Error:* ```{error_msg[:1000]}```\n"
+                f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            self.send_message(text)
+        else:
+            embed = {
+                "title": "🚨 Echotik Login Failed",
+                "description": f"Failed to login user `{masked_email}`",
+                "fields": [
+                    {"name": "Error", "value": error_msg[:1000], "inline": False},
+                ],
+                "color": self.COLOR_RED,
+            }
+            self._send_embed(embed)
+    
     def send_message(self, message: str):
         """Kirim simple text message dengan retry"""
         import time

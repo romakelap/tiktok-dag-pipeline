@@ -6,7 +6,8 @@ Module ini menangani:
 1. Login otomatis ke Echotik API menggunakan Email & Password.
 2. Mendapatkan Bearer access token terbaru.
 3. Otomatis mengupdate Airflow Variable `ECHOTIK_BEARER_TOKEN`.
-4. Validasi keaktifan token (health-check) & auto-refresh jika expired (401).
+4. Mengirim notifikasi Google Chat / Discord saat login dimulai dan saat token berhasil diupdate.
+5. Validasi keaktifan token (health-check) & auto-refresh jika expired (401).
 """
 
 import os
@@ -36,10 +37,20 @@ class EchotikAuthenticator:
     LOGIN_URL = "https://echotik.live/api/v1/users/login"
     VALIDATE_URL = "https://echotik.live/api/v1/data/videos"
 
-    def __init__(self, email: Optional[str] = None, password: Optional[str] = None):
+    def __init__(self, email: Optional[str] = None, password: Optional[str] = None, notifier=None):
         self.email = email
         self.password = password
         self.session = requests.Session()
+        self.notifier = notifier
+        if not self.notifier:
+            try:
+                from utils.monitoring.discord_notifier import get_notifier
+                self.notifier = get_notifier()
+            except Exception:
+                self.notifier = None
+
+    def set_notifier(self, notifier):
+        self.notifier = notifier
 
     def _get_credentials(self):
         """Ambil email & password dari argumen, Airflow Variable, atau env var"""
@@ -75,6 +86,14 @@ class EchotikAuthenticator:
         Jika update_airflow_var=True, otomatis update Airflow Variable `ECHOTIK_BEARER_TOKEN`.
         """
         email, password = self._get_credentials()
+
+        # Kirim notifikasi login dimulai
+        if self.notifier:
+            try:
+                self.notifier.send_login_started(email)
+            except Exception as notif_err:
+                logging.warning(f"Gagal mengirim notifikasi login started: {notif_err}")
+
         ua = random.choice(USER_AGENTS)
 
         headers = {
@@ -101,37 +120,51 @@ class EchotikAuthenticator:
                 headers=headers,
                 timeout=15
             )
-        except Exception as e:
-            raise EchotikAuthException(f"Gagal menghubungi server login Echotik: {e}")
 
-        if response.status_code != 200:
-            raise EchotikAuthException(
-                f"Login Echotik gagal (HTTP {response.status_code}): {response.text[:200]}"
-            )
+            if response.status_code != 200:
+                raise EchotikAuthException(
+                    f"Login Echotik gagal (HTTP {response.status_code}): {response.text[:200]}"
+                )
 
-        try:
-            data = response.json()
-        except Exception:
-            raise EchotikAuthException(f"Response login bukan JSON valid: {response.text[:200]}")
-
-        if data.get("code") != 0 or not data.get("data") or not data.get("data").get("access_token"):
-            err_msg = data.get("msg") or data.get("errors") or "Akses token tidak ditemukan di response"
-            raise EchotikAuthException(f"Autentikasi Echotik ditolak: {err_msg}")
-
-        token = data["data"]["access_token"]
-        user_info = data["data"].get("user", {})
-        logging.info(f"✅ Login Echotik berhasil! User: {user_info.get('name', email)} (Token: {token[:10]}...)")
-
-        # Update Airflow Variable jika running di lingkungan Airflow
-        if update_airflow_var:
             try:
-                from airflow.models import Variable
-                Variable.set("ECHOTIK_BEARER_TOKEN", token)
-                logging.info("✅ Airflow Variable 'ECHOTIK_BEARER_TOKEN' berhasil diupdate otomatis.")
-            except Exception as e:
-                logging.warning(f"Tidak dapat mengupdate Airflow Variable (mungkin di luar Airflow runner): {e}")
+                data = response.json()
+            except Exception:
+                raise EchotikAuthException(f"Response login bukan JSON valid: {response.text[:200]}")
 
-        return token
+            if data.get("code") != 0 or not data.get("data") or not data.get("data").get("access_token"):
+                err_msg = data.get("msg") or data.get("errors") or "Akses token tidak ditemukan di response"
+                raise EchotikAuthException(f"Autentikasi Echotik ditolak: {err_msg}")
+
+            token = data["data"]["access_token"]
+            user_info = data["data"].get("user", {})
+            user_name = user_info.get("name", email)
+            logging.info(f"✅ Login Echotik berhasil! User: {user_name} (Token: {token[:10]}...)")
+
+            # Update Airflow Variable jika running di lingkungan Airflow
+            if update_airflow_var:
+                try:
+                    from airflow.models import Variable
+                    Variable.set("ECHOTIK_BEARER_TOKEN", token)
+                    logging.info("✅ Airflow Variable 'ECHOTIK_BEARER_TOKEN' berhasil diupdate otomatis.")
+                except Exception as e:
+                    logging.warning(f"Tidak dapat mengupdate Airflow Variable (mungkin di luar Airflow runner): {e}")
+
+            # Kirim notifikasi login & token berhasil diupdate
+            if self.notifier:
+                try:
+                    self.notifier.send_login_success(email=email, token=token, user_name=user_name)
+                except Exception as notif_err:
+                    logging.warning(f"Gagal mengirim notifikasi login success: {notif_err}")
+
+            return token
+
+        except Exception as e:
+            if self.notifier:
+                try:
+                    self.notifier.send_login_failed(email=email, error_msg=str(e))
+                except Exception:
+                    pass
+            raise
 
     def is_token_valid(self, token: str) -> bool:
         """
@@ -189,7 +222,7 @@ class EchotikAuthenticator:
         return self.login(update_airflow_var=True)
 
 
-def get_authenticated_token(force_refresh: bool = False) -> str:
+def get_authenticated_token(force_refresh: bool = False, notifier=None) -> str:
     """Helper global untuk mendapatkan token yang valid"""
-    auth = EchotikAuthenticator()
+    auth = EchotikAuthenticator(notifier=notifier)
     return auth.get_valid_token(force_refresh=force_refresh)
