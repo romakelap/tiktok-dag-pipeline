@@ -60,6 +60,20 @@ class EchotikAPIClient:
     def set_notifier(self, notifier):
         self.notifier = notifier
     
+    def _try_auto_refresh(self) -> bool:
+        """Coba auto-login dan update bearer_token jika expired"""
+        try:
+            from utils.auth.echotik_auth import EchotikAuthenticator
+            auth = EchotikAuthenticator()
+            new_token = auth.login(update_airflow_var=True)
+            if new_token:
+                self.bearer_token = new_token
+                logging.info(f"Bearer token refreshed successfully: {new_token[:10]}...")
+                return True
+        except Exception as e:
+            logging.warning(f"Auto-refresh token failed: {e}")
+        return False
+    
     def _build_headers(self, referer_path: str = "/") -> Dict[str, str]:
         """
         Build headers persis seperti cURL dari browser Nico.
@@ -121,10 +135,14 @@ class EchotikAPIClient:
                 
                 # Auth error (HTTP Status)
                 if response.status_code in (401, 403):
-                    logging.error(f"Auth error {response.status_code}: Bearer token expired?")
+                    logging.warning(f"Auth error {response.status_code}: Bearer token expired. Attempting auto-login...")
+                    if self._try_auto_refresh():
+                        logging.info("Auto-login succeeded! Retrying request with new token...")
+                        continue
+                    logging.error(f"Auth error {response.status_code}: Auto-login failed.")
                     raise EchotikAuthException(
                         f"Authentication failed ({response.status_code}). "
-                        f"Bearer token mungkin expired. Silakan perbarui token Anda."
+                        f"Bearer token expired dan auto-login gagal."
                     )
                 
                 response.raise_for_status()
@@ -135,6 +153,10 @@ class EchotikAPIClient:
                     code = res_data.get('code')
                     msg = str(res_data.get('msg', res_data.get('message', ''))).lower()
                     if code in (401, 403) or 'unauthorized' in msg or 'expired' in msg or ('token' in msg and ('invalid' in msg or 'expire' in msg)):
+                        logging.warning(f"Auth error in API response body (code={code}): {msg}. Attempting auto-login...")
+                        if self._try_auto_refresh():
+                            logging.info("Auto-login succeeded! Retrying request with new token...")
+                            continue
                         logging.error(f"Auth error in API response body (code={code}): {msg}")
                         raise EchotikAuthException(
                             f"Authentication failed in response body (code={code}). Msg: {msg}"

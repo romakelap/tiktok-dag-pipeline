@@ -90,17 +90,22 @@ def _get_notifier():
 
 
 def _get_bearer_token():
-    """Get Bearer token dari Airflow Variable"""
+    """Get Bearer token dari Airflow Variable dengan auto-login & auto-refresh"""
     try:
-        token = Variable.get('ECHOTIK_BEARER_TOKEN')
-        if not token or token == 'PASTE_YOUR_TOKEN_HERE':
-            raise ValueError("Bearer token belum di-set")
-        return token
+        from utils.auth.echotik_auth import get_authenticated_token
+        return get_authenticated_token()
     except Exception as e:
-        raise AirflowException(
-            f"ECHOTIK_BEARER_TOKEN tidak set: {e}\n"
-            f"Setup: Airflow UI → Admin → Variables → tambah ECHOTIK_BEARER_TOKEN"
-        )
+        logging.warning(f"Auto-auth service: {e}, mencoba fallback ke static Variable...")
+        try:
+            token = Variable.get('ECHOTIK_BEARER_TOKEN')
+            if not token or token == 'PASTE_YOUR_TOKEN_HERE':
+                raise ValueError("Bearer token belum di-set")
+            return token
+        except Exception as err:
+            raise AirflowException(
+                f"ECHOTIK_BEARER_TOKEN tidak dapat diperoleh: {err}\n"
+                f"Pastikan Airflow Variable 'ECHOTIK_EMAIL' dan 'ECHOTIK_PASSWORD' sudah di-set."
+            )
 
 
 def _get_cookies():
