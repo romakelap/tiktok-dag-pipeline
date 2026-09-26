@@ -1,30 +1,32 @@
-# 🚀 TikTrend BI — Airflow Data Pipeline & ML Engine
+# TikTrend BI — Airflow Data Pipeline & ML Engine
 
-Repository ini berisi arsitektur pipeline data end-to-end berbasis **Apache Airflow 3**, **FastAPI Machine Learning Service**, dan **ETL Ingestion Engine** untuk mengumpulkan data tren TikTok dari EchoTik API, menyimpannya ke MySQL, serta menjalankan prediksi viralitas dan tren deret waktu LSTM secara otomatis.
+An end-to-end automated data pipeline architecture built on **Apache Airflow**, **FastAPI Machine Learning Service**, and a robust **ETL Ingestion Engine**. This repository manages the scheduled collection of TikTok trend datasets from the EchoTik API, persists cleansed records into MySQL, and executes daily machine learning predictions (Virality probability, Engagement Tier classification, LSTM time-series forecasting, and NLP summarization).
 
 ---
 
-## 📊 1. Alur Kerja Pipeline (End-to-End Workflow)
+## 1. End-to-End Pipeline Architecture
 
 ```mermaid
 flowchart TD
-    subgraph DataCollection ["1️⃣ Data Collection Pipeline (echotik_data_collection)"]
-        A1[Schedule / Manual Trigger] --> A2[setup_dates & validate_credentials]
+    subgraph DataCollection ["1. Data Collection Pipeline (echotik_data_collection)"]
+        A1[Scheduled / Manual Trigger] --> A2[setup_dates & validate_credentials]
         A2 --> A3[fetch_video_library]
         A3 --> A4[fetch_hashtags]
         A4 --> A5[fetch_video_selling]
         A5 --> A6[parser_and_validate]
         A6 --> A7[Save raw datasets to Excel]
+        A7 --> A8[trigger_data_ingestion]
     end
 
-    subgraph DataIngestion ["2️⃣ Data Ingestion & ETL Pipeline (echotik_data_ingestion)"]
+    subgraph DataIngestion ["2. Data Ingestion & ETL Pipeline (echotik_data_ingestion)"]
         B1[Scan raw Excel files] --> B2[Staging Tables Ingestion]
         B2 --> B3[Data Cleaning & Transformation]
         B3 --> B4[Upsert to Production MySQL]
         B4 --> B5[Refresh BI Summary Aggregates]
+        B5 --> B6[trigger_ml_inference]
     end
 
-    subgraph MLInference ["3️⃣ ML Inference Pipeline (echotik_ml_daily_inference)"]
+    subgraph MLInference ["3. ML Inference Pipeline (echotik_ml_daily_inference)"]
         C1[Fetch Latest Unscored Videos] --> C2[Random Forest Viral Probability]
         C2 --> C3[SVM Engagement Tier Classification]
         C3 --> C4[PyTorch LSTM 7-Day Metric Forecast]
@@ -38,75 +40,68 @@ flowchart TD
 
 ---
 
-## 🔄 2. Rincian Tiga DAG Utama
+## 2. Core DAGs Overview
 
-| DAG Name | Jadwal / Trigger | Tanggung Jawab Utama |
+| DAG Name | Schedule / Trigger | Primary Responsibilities |
 | :--- | :--- | :--- |
-| **`echotik_data_collection`** | Setiap 12 Jam (`0 */12 * * *`) | Menarik data live video library, hashtags trending, dan data video selling dari EchoTik API. Menghasilkan file Excel terstruktur di direktori staging. |
-| **`echotik_data_ingestion`** | Otomatis setelah collection | Membaca file Excel, memvalidasi skema data, memasukkan ke tabel staging, melakukan *upsert* idempotensial ke tabel produksi (`videos_echotik`, `hashtags_echotik`, `influencers`), dan memperbarui view analitik. |
-| **`echotik_ml_daily_inference`** | Harian (`0 2 * * *`) | Mengirimkan data video baru ke microservice FastAPI (`http://localhost:8001`) untuk kalkulasi probabilitas viral (Random Forest), klasifikasi tier (SVM), dan prediksi tren 7 hari (PyTorch LSTM). |
+| **`echotik_data_collection`** | Every 12 Hours (`0 */12 * * *`) | Fetches live video library, trending hashtags, and video selling leaderboards from the EchoTik API. Generates structured datasets in staging and triggers the Ingestion DAG upon completion. |
+| **`echotik_data_ingestion`** | Automated (triggered by DAG 1) | Scans datasets, validates schema consistency, loads staging tables, performs idempotent upserts into production MySQL tables (`videos_echotik`, `hashtags_echotik`, `influencers`), and updates analytical aggregates. |
+| **`echotik_ml_daily_inference`** | Automated (triggered by DAG 2) | Sends newly collected videos to the FastAPI ML microservice to compute virality probabilities (Random Forest), tier classification (SVM), and 7-day metric forecasts (PyTorch LSTM). |
 
 ---
 
-## 🚀 3. Alur CI/CD Deployment Otomatis (GitHub Actions)
+## 3. Automated Authentication & Monitoring
 
-Dengan setup GitHub Actions yang telah dikonfigurasi, Anda **tidak perlu login ke server manual** untuk meng-update logic pipeline.
+- **Automated Token Management:** Built-in auto-login service handles Bearer token generation, validation, and automated refresh with Airflow Variable synchronization without requiring manual browser inspection.
+- **Zero-Downtime Auto-Recovery:** The API client automatically intercepts HTTP 401 errors, acquires a fresh access token, and retries the pending request seamlessly.
+- **Unified Alert System:** Real-time lifecycle notifications (task execution, token status, dataset volumes, and pipeline summaries) delivered via Google Chat and Discord webhooks.
+
+---
+
+## 4. CI/CD & Deployment Workflow
+
+The repository is equipped with GitHub Actions automation for continuous deployment:
 
 ```text
-[Laptop Anda] 
-      │  (git add . && git commit && git push origin main)
-      ▼
-[GitHub Repository: romakelap/tiktok-dag-pipeline]
-      │  (GitHub Actions Workflow: .github/workflows/deploy.yml)
-      ▼
-[AWS EC2 Server: 52.77.214.191]
-      │  - Git pull branch main terbaru
-      │  - Sinkronisasi folder dags/ ke AIRFLOW_HOME
-      ▼
-[Airflow 3 Standalone Service]
-      └─ Auto-reload DAGs dalam 30 detik (Zero-Downtime)
+[Local Development] 
+       │  (git push origin main)
+       ▼
+[GitHub Repository]
+       │  (GitHub Actions Workflow: deploy.yml)
+       ▼
+[Production Server]
+       │  - Pulls latest main branch commits
+       │  - Synchronizes DAGs and plugins
+       ▼
+[Airflow Daemon]
+       └─ Auto-reloads DAG definitions with zero downtime
 ```
 
 ---
 
-## 📁 4. Struktur Direktori Proyek
+## 5. Project Directory Structure
 
 ```text
 tiktok-dag-pipeline/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml              # CI/CD otomatis via SSH ke EC2
+│       └── deploy.yml              # CI/CD automation workflow
 ├── config/
-│   ├── airflow.cfg                 # Konfigurasi runtime Airflow
-│   ├── categories_config.py        # Pemetaan kategori konten TikTok
-│   └── db_config.py                # Konfigurasi tabel MySQL & staging
+│   ├── airflow.cfg                 # Airflow runtime configuration
+│   ├── categories_config.py        # TikTok content category mapping
+│   └── db_config.py                # Database and staging configuration
 ├── dags/
-│   ├── echotik_data_collection.py  # DAG Pengambilan Data
-│   ├── echotik_data_ingestion.py   # DAG ETL & Ingestion MySQL
-│   ├── echotik_ml_daily_inference.py # DAG Inferensi Model ML
-│   └── orchestrate_collection.py   # DAG Master Orchestrator
+│   ├── echotik_data_collection.py  # Data collection DAG
+│   ├── echotik_data_ingestion.py   # ETL & database ingestion DAG
+│   └── echotik_ml_daily_inference.py # Machine learning inference DAG
 ├── ml-service/
-│   ├── app.py                      # FastAPI ML Microservice (Port 8001)
-│   ├── artifacts/                  # Bobot model ML (.pkl, .pt, NLP vocab)
-│   └── inference/                  # Skrip training & inferensi
+│   ├── app.py                      # FastAPI ML microservice
+│   ├── artifacts/                  # Trained model weights (.pkl, .pt)
+│   └── inference/                  # Model training and inference routines
 ├── plugins/
-│   ├── hooks/                      # Custom Airflow Hooks (DB & EchoTik Client)
-│   └── utils/                      # Validator, parser, dan transformator
-├── sql/                            # Skrip DDL skema database MySQL
+│   ├── hooks/                      # Custom Airflow hooks (DB and EchoTik client)
+│   └── utils/                      # Auth service, validators, and notifiers
+├── sql/                            # Database DDL schemas and migration scripts
 ├── .gitignore
 └── README.md
 ```
-
----
-
-## 🛠️ 5. Cara Mengupdate Logic Pipeline
-
-1. **Edit kode** di komputer lokal Anda (misal mengubah threshold di `config/` atau task di `dags/`).
-2. **Push ke GitHub**:
-   ```bash
-   git add .
-   git commit -m "feat: perbarui parameter ingestion"
-   git push origin main
-   ```
-3. **Pantau status**: GitHub Actions akan otomatis melakukan deployment ke AWS EC2 dalam hitungan detik. Cek status pipeline di dashboard Airflow:
-   👉 **[http://52.77.214.191:8080](http://52.77.214.191:8080)**
