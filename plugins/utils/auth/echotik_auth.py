@@ -199,12 +199,12 @@ class EchotikAuthenticator:
         except Exception:
             return False
 
-    def get_valid_token(self, force_refresh: bool = False) -> str:
+    def get_valid_token(self, force_refresh: bool = False, send_alert_on_valid: bool = True) -> str:
         """
         Ambil token yang valid.
         Cek token yang ada di Airflow Variable terlebih dahulu:
-        - Jika valid & tidak force_refresh -> gunakan token tersebut.
-        - Jika expired/tidak ada -> login ulang dan return token baru.
+        - Jika valid & tidak force_refresh -> kirim alert valid & gunakan token tersebut.
+        - Jika expired/tidak ada -> login ulang dan return token baru (mengirim alert login & success).
         """
         current_token = None
         if not force_refresh:
@@ -216,13 +216,19 @@ class EchotikAuthenticator:
 
             if current_token and self.is_token_valid(current_token):
                 logging.info("Token saat ini masih valid. Tidak perlu login ulang.")
+                if send_alert_on_valid and self.notifier:
+                    try:
+                        self.notifier.send_token_valid(current_token)
+                    except Exception as notif_err:
+                        logging.warning(f"Gagal kirim notif token valid: {notif_err}")
                 return current_token
 
         logging.info("Token tidak valid / expired / belum ada. Memulai proses login ulang otomatis...")
         return self.login(update_airflow_var=True)
 
 
-def get_authenticated_token(force_refresh: bool = False, notifier=None) -> str:
+def get_authenticated_token(force_refresh: bool = False, notifier=None, send_alert_on_valid: bool = True) -> str:
     """Helper global untuk mendapatkan token yang valid"""
     auth = EchotikAuthenticator(notifier=notifier)
-    return auth.get_valid_token(force_refresh=force_refresh)
+    return auth.get_valid_token(force_refresh=force_refresh, send_alert_on_valid=send_alert_on_valid)
+

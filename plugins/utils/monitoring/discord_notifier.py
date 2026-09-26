@@ -360,6 +360,29 @@ class AlertNotifier:
             }
             self._send_embed(embed)
     
+    def send_token_valid(self, token: str = ""):
+        """Notifikasi saat Bearer token dicek dan masih aktif/valid"""
+        masked_token = token[:10] + "..." + token[-6:] if len(token) > 16 else (token[:6] + "..." if token else "")
+        if self.is_gchat:
+            text = (
+                f"🔑 *Echotik Bearer Token Status*\n"
+                f"• *Status:* Token aktif & valid ✅ (siap digunakan)\n"
+                f"• *Token:* `{masked_token}`\n"
+                f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            self.send_message(text)
+        else:
+            embed = {
+                "title": "🔑 Echotik Token Active",
+                "description": "Bearer token aktif & valid ✅",
+                "fields": [
+                    {"name": "Token", "value": f"`{masked_token}`", "inline": True},
+                    {"name": "Status", "value": "✅ Ready to crawl", "inline": False},
+                ],
+                "color": self.COLOR_GREEN,
+            }
+            self._send_embed(embed)
+    
     def send_login_failed(self, email: str = "", error_msg: str = ""):
         """Notifikasi saat login gagal"""
         if self.is_gchat:

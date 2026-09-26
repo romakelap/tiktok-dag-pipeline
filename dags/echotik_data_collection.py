@@ -82,10 +82,10 @@ default_args = {
 # ============================================
 def _get_notifier():
     try:
-        webhook_url = Variable.get('DISCORD_WEBHOOK_URL')
-        return DiscordNotifier(webhook_url)
+        from utils.monitoring.discord_notifier import get_notifier
+        return get_notifier()
     except Exception as e:
-        logging.warning(f"Discord notifier not available: {e}")
+        logging.warning(f"Notifier not available: {e}")
         return None
 
 
@@ -346,11 +346,15 @@ def setup_dates(**context):
     return dates
 
 def validate_credentials(**context):
-    """Validate Bearer token & cookies — termasuk test real API call ke Echotik."""
+    """Validate Bearer token & cookies — termasuk test real API call ke Echotik & kirim alert status token."""
     notifier = _get_notifier()
 
     try:
-        bearer = _get_bearer_token()
+        from utils.auth.echotik_auth import EchotikAuthenticator
+        auth = EchotikAuthenticator(notifier=notifier)
+
+        # Ambil token valid (akan kirim alert valid jika masih aktif, atau alert login jika diperbarui)
+        bearer = auth.get_valid_token(force_refresh=False, send_alert_on_valid=True)
         cookies = _get_cookies()
         logging.info(f"Auth: bearer={len(bearer)} chars, cookies={len(cookies)} chars")
 
@@ -374,7 +378,7 @@ def validate_credentials(**context):
                 _notify_token_error(notifier, err_str)
                 raise AirflowException(
                     f"ECHOTIK_BEARER_TOKEN expired atau invalid: {err_str}\n"
-                    "Update token via: Airflow UI → Admin → Variables → ECHOTIK_BEARER_TOKEN"
+                    "Cek kredensial ECHOTIK_EMAIL / ECHOTIK_PASSWORD di Airflow Variables."
                 )
             # Error lain (timeout, network) — tetap raise tapi bukan token issue
             logging.warning(f"Token test request failed (non-auth): {api_err}")
