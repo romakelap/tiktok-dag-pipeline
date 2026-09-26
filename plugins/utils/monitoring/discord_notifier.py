@@ -23,7 +23,7 @@ DEFAULT_WEBHOOK_URL = "https://chat.googleapis.com/v1/spaces/AAQAb4EY2xU/message
 class AlertNotifier:
     """
     Unified Alert Notifier supporting both Google Chat Webhooks and Discord Webhooks.
-    Automatically detects the webhook endpoint format based on URL.
+    Clean text formatting without emojis.
     """
 
     # Color codes untuk Discord embed
@@ -44,7 +44,7 @@ class AlertNotifier:
         """Notifikasi saat task dimulai"""
         if self.is_gchat:
             text = (
-                f"🚀 *Task Started*\n"
+                f"*Task Started*\n"
                 f"• *Task:* `{task_name}`\n"
                 f"• *DAG:* `{dag_id}`\n"
                 f"• *Run ID:* `{run_id or 'manual'}`\n"
@@ -70,7 +70,7 @@ class AlertNotifier:
         """Notifikasi saat task sukses"""
         if self.is_gchat:
             lines = [
-                f"✅ *Task Success:* `{task_name}`",
+                f"*Task Success:* `{task_name}`",
                 f"• *Duration:* {duration_sec:.1f}s",
                 f"• *Status:* Success",
             ]
@@ -83,7 +83,7 @@ class AlertNotifier:
         else:
             fields = [
                 {"name": "Duration", "value": f"{duration_sec:.1f}s", "inline": True},
-                {"name": "Status", "value": "✅ Success", "inline": True},
+                {"name": "Status", "value": "Success", "inline": True},
             ]
             if records_count is not None:
                 fields.append({"name": "Records", "value": str(records_count), "inline": True})
@@ -91,7 +91,7 @@ class AlertNotifier:
                 for key, value in extra_info.items():
                     fields.append({"name": key, "value": str(value), "inline": True})
             embed = {
-                "title": f"✅ Task Success: {task_name}",
+                "title": f"Task Success: {task_name}",
                 "fields": fields,
                 "color": self.COLOR_GREEN,
             }
@@ -99,10 +99,10 @@ class AlertNotifier:
     
     def send_task_failed(self, task_name: str, error_msg: str, 
                          retry_count: int = 0):
-        """Notifikasi saat task gagal — URGENT"""
+        """Notifikasi saat task gagal"""
         if self.is_gchat:
             text = (
-                f"❌ *Task Failed:* `{task_name}`\n"
+                f"*Task Failed:* `{task_name}`\n"
                 f"• *Retry Count:* {retry_count}\n"
                 f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
                 f"• *Error:*\n```{error_msg[:1000]}```"
@@ -110,7 +110,7 @@ class AlertNotifier:
             self.send_message(text)
         else:
             embed = {
-                "title": "❌ Task Failed",
+                "title": "Task Failed",
                 "description": f"`{task_name}`",
                 "fields": [
                     {"name": "Error", "value": error_msg[:1000], "inline": False},
@@ -126,20 +126,19 @@ class AlertNotifier:
                               duration_sec: float, status: str = "success"):
         """Summary per kategori setelah fetch selesai"""
         if self.is_gchat:
-            status_emoji = "✅" if status == "success" else "⚠️"
             text = (
-                f"{status_emoji} *Category Complete:* `{category}`\n"
+                f"*Category Complete:* `{category}`\n"
                 f"• *API:* {api_name}\n"
                 f"• *Records:* {total_records}\n"
                 f"• *Pages:* {pages_fetched}\n"
-                f"• *Duration:* {duration_sec:.1f}s"
+                f"• *Duration:* {duration_sec:.1f}s\n"
+                f"• *Status:* {status.capitalize()}"
             )
             self.send_message(text)
         else:
             color = self.COLOR_GREEN if status == "success" else self.COLOR_ORANGE
-            status_emoji = "✅" if status == "success" else "⚠️"
             embed = {
-                "title": f"{status_emoji} Category Complete: {category}",
+                "title": f"Category Complete: {category}",
                 "fields": [
                     {"name": "API", "value": api_name, "inline": True},
                     {"name": "Records", "value": str(total_records), "inline": True},
@@ -158,15 +157,15 @@ class AlertNotifier:
         
         if self.is_gchat:
             lines = [
-                f"📊 *API Summary:* `{api_name}`",
+                f"*API Summary:* `{api_name}`",
                 f"• *Total Records:* {total_records}",
                 f"• *Categories Processed:* {success_count}/{total_categories}",
                 "",
                 "*Category Breakdown:*",
             ]
             for slug, info in categories_data.items():
-                emoji = "✅" if info.get("status") == "success" else "❌"
-                lines.append(f"• {emoji} *{slug}*: {info.get('records', 0)} records")
+                status_text = "OK" if info.get("status") == "success" else "Failed"
+                lines.append(f"• *{slug}* [{status_text}]: {info.get('records', 0)} records")
             self.send_message("\n".join(lines))
         else:
             fields = [
@@ -174,14 +173,13 @@ class AlertNotifier:
                 {"name": "Categories", "value": f"{success_count}/{total_categories}", "inline": True},
             ]
             for slug, info in categories_data.items():
-                emoji = "✅" if info.get("status") == "success" else "❌"
                 fields.append({
-                    "name": f"{emoji} {slug}",
+                    "name": f"{slug}",
                     "value": f"{info.get('records', 0)} records",
                     "inline": True
                 })
             embed = {
-                "title": f"📊 API Summary: {api_name}",
+                "title": f"API Summary: {api_name}",
                 "fields": fields,
                 "color": self.COLOR_GREEN if success_count == total_categories else self.COLOR_ORANGE,
             }
@@ -194,23 +192,23 @@ class AlertNotifier:
         error_details = "\n".join([f"  • {k}: {v}" for k, v in error_breakdown.items()]) or "None"
         if self.is_gchat:
             text = (
-                f"🔍 *Parser & Validation Summary*\n"
+                f"*Parser & Validation Summary*\n"
                 f"• *Total Records:* {total_records}\n"
-                f"• *Valid:* {valid_records} ✅\n"
-                f"• *Invalid:* {invalid_records} ❌\n"
+                f"• *Valid:* {valid_records}\n"
+                f"• *Invalid:* {invalid_records}\n"
                 f"• *Excel Output:* `{excel_filename}`\n"
                 f"• *Validation Errors:*\n{error_details}"
             )
             self.send_message(text)
         else:
             embed = {
-                "title": "🔍 Parser & Validation Summary",
+                "title": "Parser & Validation Summary",
                 "fields": [
                     {"name": "Total Records", "value": str(total_records), "inline": True},
-                    {"name": "✅ Valid", "value": str(valid_records), "inline": True},
-                    {"name": "❌ Invalid", "value": str(invalid_records), "inline": True},
+                    {"name": "Valid", "value": str(valid_records), "inline": True},
+                    {"name": "Invalid", "value": str(invalid_records), "inline": True},
                     {"name": "Validation Errors", "value": error_details[:1000], "inline": False},
-                    {"name": "📁 Excel Output", "value": f"`{excel_filename}`", "inline": False},
+                    {"name": "Excel Output", "value": f"`{excel_filename}`", "inline": False},
                 ],
                 "color": self.COLOR_GREEN if invalid_records == 0 else self.COLOR_ORANGE,
             }
@@ -222,7 +220,7 @@ class AlertNotifier:
         total = inserted + updated
         if self.is_gchat:
             lines = [
-                f"💾 *Database Ingest Summary*",
+                f"*Database Ingest Summary*",
                 f"• *Inserted:* {inserted}",
                 f"• *Updated:* {updated}",
                 f"• *Failed:* {failed}",
@@ -231,7 +229,7 @@ class AlertNotifier:
                 "*Table Breakdown:*",
             ]
             for table, counts in table_breakdown.items():
-                lines.append(f"• 📦 *{table}*: INS: {counts.get('inserted', 0)} | UPD: {counts.get('updated', 0)}")
+                lines.append(f"• *{table}*: INS: {counts.get('inserted', 0)} | UPD: {counts.get('updated', 0)}")
             self.send_message("\n".join(lines))
         else:
             fields = [
@@ -242,12 +240,12 @@ class AlertNotifier:
             ]
             for table, counts in table_breakdown.items():
                 fields.append({
-                    "name": f"📦 {table}",
+                    "name": f"{table}",
                     "value": f"INS: {counts.get('inserted', 0)} | UPD: {counts.get('updated', 0)}",
                     "inline": False
                 })
             embed = {
-                "title": "💾 Database Ingest Summary",
+                "title": "Database Ingest Summary",
                 "fields": fields,
                 "color": self.COLOR_GREEN if failed == 0 else self.COLOR_ORANGE,
             }
@@ -257,14 +255,9 @@ class AlertNotifier:
                          duration_sec: float, total_records: int,
                          next_run: Optional[str] = None):
         """Final DAG summary — dikirim setelah seluruh pipeline selesai"""
-        emoji_map = {
-            "success": "🎯",
-            "partial": "⚠️",
-            "failed": "❌",
-        }
         if self.is_gchat:
             lines = [
-                f"{emoji_map.get(status, '📈')} *Pipeline Complete:* `{dag_id}`",
+                f"*Pipeline Complete:* `{dag_id}`",
                 f"• *Status:* *{status.upper()}*",
                 f"• *Duration:* {duration_sec/60:.1f} min",
                 f"• *Records Processed:* {total_records}",
@@ -287,9 +280,9 @@ class AlertNotifier:
                 {"name": "Run ID", "value": run_id, "inline": False},
             ]
             if next_run:
-                fields.append({"name": "⏰ Next Run", "value": next_run, "inline": False})
+                fields.append({"name": "Next Run", "value": next_run, "inline": False})
             embed = {
-                "title": f"{emoji_map.get(status, '📈')} Pipeline Complete: {dag_id}",
+                "title": f"Pipeline Complete: {dag_id}",
                 "fields": fields,
                 "color": color_map.get(status, self.COLOR_PURPLE),
                 "footer": {"text": "Echotik Data Collection Pipeline"},
@@ -301,7 +294,7 @@ class AlertNotifier:
         """Alert khusus saat rate limit terdeteksi"""
         if self.is_gchat:
             text = (
-                f"⚠️ *Rate Limit Detected*\n"
+                f"*Rate Limit Detected*\n"
                 f"API mengembalikan 429 Too Many Requests\n"
                 f"• *Endpoint:* `{api_endpoint}`\n"
                 f"• *Retry After:* {retry_after}s\n"
@@ -310,7 +303,7 @@ class AlertNotifier:
             self.send_message(text)
         else:
             embed = {
-                "title": "⚠️ Rate Limit Detected",
+                "title": "Rate Limit Detected",
                 "description": "API mengembalikan 429 Too Many Requests",
                 "fields": [
                     {"name": "Endpoint", "value": api_endpoint, "inline": False},
@@ -325,14 +318,14 @@ class AlertNotifier:
         """Notifikasi saat proses auto-login ke Echotik dimulai"""
         if self.is_gchat:
             text = (
-                f"🔑 *Echotik Auto-Login Started*\n"
+                f"*Echotik Auto-Login Started*\n"
                 f"• *Status:* Requesting fresh Bearer access token...\n"
                 f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
             )
             self.send_message(text)
         else:
             embed = {
-                "title": "🔑 Echotik Auto-Login Started",
+                "title": "Echotik Auto-Login Started",
                 "description": "Requesting fresh Bearer access token...",
                 "color": self.COLOR_BLUE,
             }
@@ -343,18 +336,18 @@ class AlertNotifier:
         masked_token = token[:10] + "..." + token[-6:] if len(token) > 16 else (token[:6] + "..." if token else "")
         if self.is_gchat:
             text = (
-                f"🎉 *Echotik Bearer Token Updated Successfully!*\n"
+                f"*Echotik Bearer Token Updated Successfully*\n"
                 f"• *Token:* `{masked_token}`\n"
-                f"• *Airflow Variable:* `ECHOTIK_BEARER_TOKEN` updated ✅\n"
+                f"• *Airflow Variable:* `ECHOTIK_BEARER_TOKEN` updated\n"
                 f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
             )
             self.send_message(text)
         else:
             embed = {
-                "title": "🎉 Echotik Token Refresh Success",
+                "title": "Echotik Token Refresh Success",
                 "fields": [
                     {"name": "Token", "value": f"`{masked_token}`", "inline": True},
-                    {"name": "Status", "value": "✅ Airflow Variable Updated", "inline": False},
+                    {"name": "Status", "value": "Airflow Variable Updated", "inline": False},
                 ],
                 "color": self.COLOR_GREEN,
             }
@@ -365,19 +358,19 @@ class AlertNotifier:
         masked_token = token[:10] + "..." + token[-6:] if len(token) > 16 else (token[:6] + "..." if token else "")
         if self.is_gchat:
             text = (
-                f"🔑 *Echotik Bearer Token Status*\n"
-                f"• *Status:* Token aktif & valid ✅ (siap digunakan)\n"
+                f"*Echotik Bearer Token Status*\n"
+                f"• *Status:* Token aktif & valid (siap digunakan)\n"
                 f"• *Token:* `{masked_token}`\n"
                 f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
             )
             self.send_message(text)
         else:
             embed = {
-                "title": "🔑 Echotik Token Active",
-                "description": "Bearer token aktif & valid ✅",
+                "title": "Echotik Token Active",
+                "description": "Bearer token aktif & valid",
                 "fields": [
                     {"name": "Token", "value": f"`{masked_token}`", "inline": True},
-                    {"name": "Status", "value": "✅ Ready to crawl", "inline": False},
+                    {"name": "Status", "value": "Ready to crawl", "inline": False},
                 ],
                 "color": self.COLOR_GREEN,
             }
@@ -387,14 +380,14 @@ class AlertNotifier:
         """Notifikasi saat login gagal"""
         if self.is_gchat:
             text = (
-                f"🚨 *Echotik Auto-Login Failed!*\n"
+                f"*Echotik Auto-Login Failed*\n"
                 f"• *Error:* ```{error_msg[:1000]}```\n"
                 f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
             )
             self.send_message(text)
         else:
             embed = {
-                "title": "🚨 Echotik Login Failed",
+                "title": "Echotik Login Failed",
                 "description": "Failed to auto-login to Echotik",
                 "fields": [
                     {"name": "Error", "value": error_msg[:1000], "inline": False},

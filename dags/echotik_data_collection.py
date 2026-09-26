@@ -117,9 +117,9 @@ def _get_cookies():
 
 
 def _notify_token_error(notifier, error_msg: str = ""):
-    """Kirim alert Discord khusus ketika Bearer token invalid/expired."""
+    """Kirim alert khusus ketika Bearer token invalid/expired."""
     msg = (
-        "🔴 **BEARER TOKEN ERROR — ACTION REQUIRED**\n"
+        "**BEARER TOKEN ERROR — ACTION REQUIRED**\n"
         f"Echotik API menolak request karena token tidak valid atau sudah **expired**.\n\n"
         f"**Error:** `{error_msg[:300] if error_msg else 'Authentication failed'}`\n\n"
         "**Cara fix:**\n"
@@ -200,7 +200,7 @@ def setup_dates(**context):
     # ============================================
     if p_library_start and p_library_end:
         if p_library_start.lower() == 'skip' or p_library_end.lower() == 'skip':
-            mode_flags.append("📚 Library: SKIP")
+            mode_flags.append("Library: SKIP")
         else:
             # Manual mode
             try:
@@ -210,7 +210,7 @@ def setup_dates(**context):
                 library_end_dt = datetime.strptime(p_library_end, '%Y-%m-%d').replace(
                     hour=23, minute=59, second=59, microsecond=0
                 )
-                mode_flags.append("📚 Library: MANUAL")
+                mode_flags.append("Library: MANUAL")
                 library_start_epoch = int(library_start_dt.timestamp())
                 library_end_epoch = int(library_end_dt.timestamp())
             except Exception as e:
@@ -222,7 +222,7 @@ def setup_dates(**context):
         yesterday = now - timedelta(days=1)
         library_start_dt = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
         library_end_dt = yesterday.replace(hour=23, minute=59, second=59, microsecond=0)
-        mode_flags.append("📚 Library: AUTO (kemarin)")
+        mode_flags.append("Library: AUTO (kemarin)")
         library_start_epoch = int(library_start_dt.timestamp())
         library_end_epoch = int(library_end_dt.timestamp())
     
@@ -233,7 +233,7 @@ def setup_dates(**context):
     if p_hashtag_range:
         if p_hashtag_range.lower() == 'skip':
             hashtag_time_range = 'skip'
-            mode_flags.append("🏷️ Hashtag: SKIP")
+            mode_flags.append("Hashtag: SKIP")
         else:
             # Manual mode
             try:
@@ -242,7 +242,7 @@ def setup_dates(**context):
                 if len(parts) != 2 or len(parts[0]) != 8 or len(parts[1]) != 8:
                     raise ValueError("Format harus YYYYMMDD-YYYYMMDD")
                 hashtag_time_range = p_hashtag_range
-                mode_flags.append("🏷️ Hashtag: MANUAL")
+                mode_flags.append("Hashtag: MANUAL")
             except Exception as e:
                 logging.warning(f"Format hashtag range salah ({e}), fallback ke auto")
                 p_hashtag_range = ''
@@ -259,7 +259,7 @@ def setup_dates(**context):
             f"{last_monday.strftime('%Y%m%d')}-"
             f"{last_sunday.strftime('%Y%m%d')}"
         )
-        mode_flags.append(f"🏷️ Hashtag: AUTO (minggu lalu)")
+        mode_flags.append("Hashtag: AUTO (minggu lalu)")
     
     # ============================================
     # 3. VIDEO SELLING (MONTHLY)
@@ -268,7 +268,7 @@ def setup_dates(**context):
     if p_selling_range:
         if p_selling_range.lower() == 'skip':
             selling_time_range = 'skip'
-            mode_flags.append("💰 Selling: SKIP")
+            mode_flags.append("Selling: SKIP")
         else:
             # Manual mode
             try:
@@ -276,7 +276,7 @@ def setup_dates(**context):
                 if len(parts) != 2 or len(parts[0]) != 8 or len(parts[1]) != 8:
                     raise ValueError("Format harus YYYYMMDD-YYYYMMDD")
                 selling_time_range = p_selling_range
-                mode_flags.append("💰 Selling: MANUAL")
+                mode_flags.append("Selling: MANUAL")
             except Exception as e:
                 logging.warning(f"Format selling range salah ({e}), fallback ke auto")
                 p_selling_range = ''
@@ -291,7 +291,7 @@ def setup_dates(**context):
             f"{first_day_prev_month.strftime('%Y%m%d')}-"
             f"{last_day_prev_month.strftime('%Y%m%d')}"
         )
-        mode_flags.append("💰 Selling: AUTO (bulan lalu)")
+        mode_flags.append("Selling: AUTO (bulan lalu)")
     
     # ============================================
     # FINAL DATES DICT
