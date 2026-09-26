@@ -33,6 +33,7 @@ from pathlib import Path
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
 from airflow.models.param import Param
@@ -807,6 +808,14 @@ with DAG(
         trigger_rule='all_done',
     )
     
-    # Flow: setup → validate → library → hashtags → selling → parser → summary
-    # t_setup_dates >> t_parser >> t_summary
-    t_setup_dates >> t_validate_creds >> t_fetch_video_library >> t_fetch_hashtags >> t_fetch_video_selling >> t_parser >> t_summary
+    # Trigger DAG 2 (Data Ingestion) otomatis setelah Collection selesai
+    t_trigger_ingestion = TriggerDagRunOperator(
+        task_id='trigger_data_ingestion',
+        trigger_dag_id='echotik_data_ingestion',
+        wait_for_completion=False,
+        reset_dag_run=True,
+        trigger_rule='all_success',
+    )
+    
+    # Flow: setup → validate → library → hashtags → selling → parser → summary → trigger ingestion
+    t_setup_dates >> t_validate_creds >> t_fetch_video_library >> t_fetch_hashtags >> t_fetch_video_selling >> t_parser >> t_summary >> t_trigger_ingestion
