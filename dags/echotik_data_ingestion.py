@@ -127,6 +127,23 @@ def scan_excel_files_task(**context):
     """Step 1: Scan folder Excel untuk file yang belum di-ingest"""
     notifier = _get_notifier()
     
+    # Pre-flight resource check
+    try:
+        import shutil
+        disk = shutil.disk_usage('/')
+        used_pct = round((disk.used / disk.total) * 100, 1)
+        free_mb = round(disk.free / (1024**2), 1)
+        if used_pct >= 90:
+            logging.warning(f"Low disk space detected before ingestion: {used_pct}% used ({free_mb}MB free)")
+            if notifier:
+                notifier.send_system_health_alert(
+                    title="Low Disk Warning Before Ingestion",
+                    details={"Usage": f"{used_pct}%", "Free": f"{free_mb}MB"},
+                    severity="warning"
+                )
+    except Exception as e:
+        logging.warning(f"Pre-flight disk check error: {e}")
+    
     files = scan_excel_files(
         directory=EXCEL_INPUT_PATH,
         pattern=EXCEL_FILE_PATTERN,

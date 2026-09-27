@@ -396,6 +396,39 @@ class AlertNotifier:
             }
             self._send_embed(embed)
     
+    def send_system_health_alert(self, title: str, details: Dict[str, str], severity: str = "warning"):
+        """Notifikasi status kesehatan sistem & server (Disk, RAM, Services)"""
+        color_map = {
+            "info": self.COLOR_BLUE,
+            "warning": self.COLOR_ORANGE,
+            "critical": self.COLOR_RED,
+        }
+        prefix = "[ALERT]" if severity != "info" else "[INFO]"
+        if self.is_gchat:
+            lines = [
+                f"*{prefix} {title}*",
+                f"• *Severity:* {severity.upper()}",
+                f"• *Time:* {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                "",
+                "*Details:*",
+            ]
+            for k, v in details.items():
+                lines.append(f"• *{k}:* {v}")
+            self.send_message("\n".join(lines))
+        else:
+            fields = [
+                {"name": "Severity", "value": severity.upper(), "inline": True},
+                {"name": "Time", "value": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"), "inline": True},
+            ]
+            for k, v in details.items():
+                fields.append({"name": k, "value": str(v), "inline": False})
+            embed = {
+                "title": f"{prefix} {title}",
+                "fields": fields,
+                "color": color_map.get(severity.lower(), self.COLOR_ORANGE),
+            }
+            self._send_embed(embed)
+
     def send_message(self, message: str):
         """Kirim simple text message dengan retry"""
         import time

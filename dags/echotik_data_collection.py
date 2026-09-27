@@ -181,6 +181,23 @@ def setup_dates(**context):
     """
     notifier = _get_notifier()
     
+    # Pre-flight resource check
+    try:
+        import shutil
+        disk = shutil.disk_usage('/')
+        used_pct = round((disk.used / disk.total) * 100, 1)
+        free_mb = round(disk.free / (1024**2), 1)
+        if used_pct >= 90:
+            logging.warning(f"Low disk space detected before collection: {used_pct}% used ({free_mb}MB free)")
+            if notifier:
+                notifier.send_system_health_alert(
+                    title="Low Disk Warning Before Data Collection",
+                    details={"Usage": f"{used_pct}%", "Free": f"{free_mb}MB"},
+                    severity="warning"
+                )
+    except Exception as e:
+        logging.warning(f"Pre-flight disk check error: {e}")
+    
     # Get params dari context (manual override)
     params = context.get('params', {})
     p_library_start = (params.get('library_start_date') or '').strip()
