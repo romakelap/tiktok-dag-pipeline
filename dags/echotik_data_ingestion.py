@@ -347,6 +347,9 @@ def tagging_category_name_task(**context):
                     df_tags['category_name'] = None
                     
                 for idx, row in df_tags.iterrows():
+                    tag_title = str(row.get('tag_title', row.get('hashtag', row.get('name', '')))).strip().lower()
+                    if tag_title.startswith('#'):
+                        tag_title = tag_title[1:]
                     category = hashtag_to_category.get(tag_title)
                     if not category:
                         category = classify_text(tag_title, tag_title)
