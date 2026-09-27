@@ -29,7 +29,7 @@ except Exception as e:
 
 # Import DB Hook
 try:
-    from hooks.echotik_db_hook import get_db_hook
+    from hooks.db_hook import get_db_hook
 except Exception as e:
     logging.warning(f"Failed to import get_db_hook: {e}")
     get_db_hook = lambda: None
