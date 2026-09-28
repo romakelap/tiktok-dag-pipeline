@@ -248,7 +248,7 @@ with DAG(
     dag_id='system_health_monitor',
     default_args=default_args,
     description='Server health monitoring, resource alerts, and log auto-pruning',
-    schedule='0 * * * *',  # Every hour
+    schedule='0 */6 * * *',  # Every 6 hours (00:00, 06:00, 12:00, 18:00 UTC)
     start_date=datetime(2026, 1, 1),
     catchup=False,
     max_active_runs=1,
